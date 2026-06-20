@@ -17,3 +17,4 @@ uploads/results/*
 !uploads/products/p7.jpg
 !uploads/products/p8.jpg
 !uploads/results/.gitkeep
+.vercel
