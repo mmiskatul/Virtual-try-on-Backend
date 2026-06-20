@@ -7,7 +7,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import ROOT_DIR, ensure_upload_dirs, get_settings
 from app.database import close_mongo_connection, connect_to_mongo, get_database
-from app.routes import products, tryon, uploads
+from app.routes import auth, products, tryon, uploads
+from app.utils.passwords import hash_password
 
 settings = get_settings()
 
@@ -17,7 +18,7 @@ SEED_PRODUCTS = [
         "name": "Linen Oxford Shirt",
         "gender": "male",
         "category": "shirt",
-        "image_url": "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p1.jpg",
         "price": 89.0,
         "description": "A breathable linen oxford shirt for polished casual styling.",
         "is_active": True,
@@ -27,7 +28,7 @@ SEED_PRODUCTS = [
         "name": "Essential Black Tee",
         "gender": "unisex",
         "category": "t-shirt",
-        "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p2.jpg",
         "price": 39.0,
         "description": "A minimal everyday black t-shirt with a clean crew neckline.",
         "is_active": True,
@@ -37,7 +38,7 @@ SEED_PRODUCTS = [
         "name": "Camel Tailored Trouser",
         "gender": "male",
         "category": "pant",
-        "image_url": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p3.jpg",
         "price": 129.0,
         "description": "Tailored camel trousers with a structured modern fit.",
         "is_active": True,
@@ -47,7 +48,7 @@ SEED_PRODUCTS = [
         "name": "Navy Pique Polo",
         "gender": "male",
         "category": "t-shirt",
-        "image_url": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p8.jpg",
         "price": 59.0,
         "description": "A refined navy pique polo for smart casual looks.",
         "is_active": True,
@@ -57,7 +58,7 @@ SEED_PRODUCTS = [
         "name": "Rose Garden Kurti",
         "gender": "female",
         "category": "kurti",
-        "image_url": "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p4.jpg",
         "price": 79.0,
         "description": "A floral kurti with soft drape and comfortable everyday styling.",
         "is_active": True,
@@ -67,7 +68,7 @@ SEED_PRODUCTS = [
         "name": "Midnight Chiffon Dress",
         "gender": "female",
         "category": "dress",
-        "image_url": "https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p5.jpg",
         "price": 219.0,
         "description": "An elegant midnight chiffon dress for evening occasions.",
         "is_active": True,
@@ -77,7 +78,7 @@ SEED_PRODUCTS = [
         "name": "Ivory Silk Shirt",
         "gender": "female",
         "category": "shirt",
-        "image_url": "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p6.jpg",
         "price": 99.0,
         "description": "A smooth ivory silk shirt with a relaxed premium silhouette.",
         "is_active": True,
@@ -87,7 +88,7 @@ SEED_PRODUCTS = [
         "name": "Sand Tailored Pant",
         "gender": "unisex",
         "category": "pant",
-        "image_url": "https://images.unsplash.com/photo-1506629905607-d9c297d8594f?w=900&auto=format&fit=crop",
+        "image_url": "/uploads/products/p7.jpg",
         "price": 109.0,
         "description": "Neutral tailored pants designed for versatile outfit pairing.",
         "is_active": True,
@@ -98,13 +99,34 @@ SEED_PRODUCTS = [
 async def seed_products() -> None:
     db = get_database()
     for product in SEED_PRODUCTS:
-        await db.products.update_one({"id": product["id"]}, {"$setOnInsert": product}, upsert=True)
+        await db.products.update_one({"id": product["id"]}, {"$set": product}, upsert=True)
+
+
+async def seed_admin_user() -> None:
+    if not settings.admin_username or not settings.admin_password:
+        return
+
+    db = get_database()
+    password_hash, salt = hash_password(settings.admin_password)
+    await db.admin_users.update_one(
+        {"username": settings.admin_username},
+        {
+            "$set": {
+                "username": settings.admin_username,
+                "password_hash": password_hash,
+                "salt": salt,
+                "is_active": True,
+            }
+        },
+        upsert=True,
+    )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_upload_dirs()
     await connect_to_mongo()
+    await seed_admin_user()
     await seed_products()
     yield
     await close_mongo_connection()
@@ -121,14 +143,15 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origin_regex=".*",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.mount("/uploads", StaticFiles(directory=ROOT_DIR / "uploads"), name="uploads")
 
+app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(uploads.router)
 app.include_router(tryon.router)

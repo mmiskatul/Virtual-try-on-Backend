@@ -39,6 +39,14 @@ OPENAI_API_KEY=your_openai_key
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority&appName=VirtualTryOn
 DATABASE_NAME=virtual_tryon_db
 OPENAI_MODEL=gpt-5.5
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=change-this-password
+JWT_SECRET_KEY=generate-a-long-random-secret-with-openssl-rand-hex-32
+JWT_ALGORITHM=HS256
+JWT_EXPIRE_MINUTES=1440
+JWT_ACCESS_COOKIE_NAME=admin_access_token
+JWT_ACCESS_COOKIE_SECURE=false
+JWT_ACCESS_COOKIE_SAMESITE=lax
 ```
 
 5. Create a MongoDB Atlas cluster and set `MONGODB_URI` to your Atlas connection string.
@@ -73,7 +81,9 @@ The API runs at `http://localhost:8000`.
 - `PUT /api/products/{product_id}`
 - `DELETE /api/products/{product_id}`
 
-Products are seeded automatically on startup into the `products` collection if they do not already exist.
+Products are seeded automatically on startup into the `products` collection.
+
+The admin dashboard user is seeded automatically from `ADMIN_USERNAME` and `ADMIN_PASSWORD` into the `admin_users` collection each time the backend starts.
 
 ### Uploads
 

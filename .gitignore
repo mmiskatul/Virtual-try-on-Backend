@@ -4,6 +4,16 @@ __pycache__/
 .venv/
 venv/
 uploads/user_photos/*
+uploads/products/*
 uploads/results/*
 !uploads/user_photos/.gitkeep
+!uploads/products/.gitkeep
+!uploads/products/p1.jpg
+!uploads/products/p2.jpg
+!uploads/products/p3.jpg
+!uploads/products/p4.jpg
+!uploads/products/p5.jpg
+!uploads/products/p6.jpg
+!uploads/products/p7.jpg
+!uploads/products/p8.jpg
 !uploads/results/.gitkeep

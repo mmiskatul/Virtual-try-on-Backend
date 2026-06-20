@@ -4,6 +4,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.database import get_db
 from app.models.product import ErrorResponse, ProductCreate, ProductResponse, ProductUpdate
+from app.utils.auth import require_admin
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
@@ -42,6 +43,7 @@ async def get_product(product_id: str, db: AsyncIOMotorDatabase = Depends(get_db
 async def create_product(
     product: ProductCreate,
     db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(require_admin),
 ) -> ProductResponse:
     document = product.model_dump(mode="json")
     try:
@@ -63,6 +65,7 @@ async def update_product(
     product_id: str,
     product_update: ProductUpdate,
     db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(require_admin),
 ) -> ProductResponse:
     update_data = product_update.model_dump(exclude_unset=True, mode="json")
     if update_data:
@@ -79,7 +82,11 @@ async def update_product(
     status_code=status.HTTP_204_NO_CONTENT,
     responses={404: {"model": ErrorResponse}},
 )
-async def delete_product(product_id: str, db: AsyncIOMotorDatabase = Depends(get_db)) -> None:
+async def delete_product(
+    product_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(require_admin),
+) -> None:
     result = await db.products.delete_one({"id": product_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")

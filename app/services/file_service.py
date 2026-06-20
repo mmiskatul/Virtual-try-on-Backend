@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import aiofiles
 from fastapi import UploadFile
 
-from app.config import RESULTS_DIR, ROOT_DIR, USER_PHOTOS_DIR, get_settings
+from app.config import PRODUCTS_DIR, RESULTS_DIR, ROOT_DIR, USER_PHOTOS_DIR, get_settings
 from app.utils.validators import validate_image_upload
 
 settings = get_settings()
@@ -31,18 +31,26 @@ def public_url_to_local_path(url: str) -> Path | None:
     return candidate
 
 
-async def save_upload_file(file: UploadFile) -> str:
+async def _save_image_upload(file: UploadFile, destination_dir: Path) -> str:
     content = await file.read()
     validate_image_upload(file, len(content), settings.max_upload_size_bytes)
 
     extension = file.filename.rsplit(".", 1)[-1].lower()
     filename = f"{uuid.uuid4().hex}.{extension}"
-    destination = USER_PHOTOS_DIR / filename
+    destination = destination_dir / filename
 
     async with aiofiles.open(destination, "wb") as out_file:
         await out_file.write(content)
 
     return build_public_path(destination)
+
+
+async def save_user_photo(file: UploadFile) -> str:
+    return await _save_image_upload(file, USER_PHOTOS_DIR)
+
+
+async def save_product_image(file: UploadFile) -> str:
+    return await _save_image_upload(file, PRODUCTS_DIR)
 
 
 async def save_result_image(image_bytes: bytes) -> str:

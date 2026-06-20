@@ -13,7 +13,9 @@ async def connect_to_mongo() -> None:
 
     client = AsyncIOMotorClient(settings.mongodb_uri, serverSelectionTimeoutMS=10000)
     await client.admin.command("ping")
-    await get_database().products.create_index("id", unique=True)
+    db = get_database()
+    await db.products.create_index("id", unique=True)
+    await db.admin_users.create_index("username", unique=True)
 
 
 async def close_mongo_connection() -> None:
