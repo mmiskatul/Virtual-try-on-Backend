@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+uploads/user_photos/*
+uploads/results/*
+!uploads/user_photos/.gitkeep
+!uploads/results/.gitkeep
