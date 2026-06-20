@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import ROOT_DIR, ensure_upload_dirs, get_settings
 from app.database import close_mongo_connection, connect_to_mongo, get_database
 from app.routes import auth, products, tryon, uploads
+from app.services.file_service import build_public_path, is_local_upload_url, upload_local_image_to_cloudinary
 from app.utils.passwords import hash_password
 
 settings = get_settings()
@@ -18,7 +19,7 @@ SEED_PRODUCTS = [
         "name": "Linen Oxford Shirt",
         "gender": "male",
         "category": "shirt",
-        "image_url": "/uploads/products/p1.jpg",
+        "image_path": "uploads/products/p1.jpg",
         "price": 89.0,
         "description": "A breathable linen oxford shirt for polished casual styling.",
         "is_active": True,
@@ -28,7 +29,7 @@ SEED_PRODUCTS = [
         "name": "Essential Black Tee",
         "gender": "unisex",
         "category": "t-shirt",
-        "image_url": "/uploads/products/p2.jpg",
+        "image_path": "uploads/products/p2.jpg",
         "price": 39.0,
         "description": "A minimal everyday black t-shirt with a clean crew neckline.",
         "is_active": True,
@@ -38,7 +39,7 @@ SEED_PRODUCTS = [
         "name": "Camel Tailored Trouser",
         "gender": "male",
         "category": "pant",
-        "image_url": "/uploads/products/p3.jpg",
+        "image_path": "uploads/products/p3.jpg",
         "price": 129.0,
         "description": "Tailored camel trousers with a structured modern fit.",
         "is_active": True,
@@ -48,7 +49,7 @@ SEED_PRODUCTS = [
         "name": "Navy Pique Polo",
         "gender": "male",
         "category": "t-shirt",
-        "image_url": "/uploads/products/p8.jpg",
+        "image_path": "uploads/products/p8.jpg",
         "price": 59.0,
         "description": "A refined navy pique polo for smart casual looks.",
         "is_active": True,
@@ -58,7 +59,7 @@ SEED_PRODUCTS = [
         "name": "Rose Garden Kurti",
         "gender": "female",
         "category": "kurti",
-        "image_url": "/uploads/products/p4.jpg",
+        "image_path": "uploads/products/p4.jpg",
         "price": 79.0,
         "description": "A floral kurti with soft drape and comfortable everyday styling.",
         "is_active": True,
@@ -68,7 +69,7 @@ SEED_PRODUCTS = [
         "name": "Midnight Chiffon Dress",
         "gender": "female",
         "category": "dress",
-        "image_url": "/uploads/products/p5.jpg",
+        "image_path": "uploads/products/p5.jpg",
         "price": 219.0,
         "description": "An elegant midnight chiffon dress for evening occasions.",
         "is_active": True,
@@ -78,7 +79,7 @@ SEED_PRODUCTS = [
         "name": "Ivory Silk Shirt",
         "gender": "female",
         "category": "shirt",
-        "image_url": "/uploads/products/p6.jpg",
+        "image_path": "uploads/products/p6.jpg",
         "price": 99.0,
         "description": "A smooth ivory silk shirt with a relaxed premium silhouette.",
         "is_active": True,
@@ -88,7 +89,7 @@ SEED_PRODUCTS = [
         "name": "Sand Tailored Pant",
         "gender": "unisex",
         "category": "pant",
-        "image_url": "/uploads/products/p7.jpg",
+        "image_path": "uploads/products/p7.jpg",
         "price": 109.0,
         "description": "Neutral tailored pants designed for versatile outfit pairing.",
         "is_active": True,
@@ -96,10 +97,51 @@ SEED_PRODUCTS = [
 ]
 
 
+async def _resolve_seed_product_image_url(product: dict[str, str]) -> str:
+    image_path = ROOT_DIR / product["image_path"]
+    if settings.cloudinary_configured:
+        return await upload_local_image_to_cloudinary(
+            image_path,
+            folder=f"{settings.cloudinary_folder}/products",
+            public_id=product["id"],
+        )
+    return build_public_path(image_path)
+
+
 async def seed_products() -> None:
     db = get_database()
     for product in SEED_PRODUCTS:
-        await db.products.update_one({"id": product["id"]}, {"$set": product}, upsert=True)
+        image_url = await _resolve_seed_product_image_url(product)
+        payload = {k: v for k, v in product.items() if k != "image_path"}
+        payload["image_url"] = image_url
+        await db.products.update_one({"id": payload["id"]}, {"$set": payload}, upsert=True)
+
+
+async def cleanup_legacy_image_records() -> None:
+    db = get_database()
+    await db.tryon_results.delete_many(
+        {
+            "$or": [
+                {"user_image_url": {"$regex": r"^/uploads/"}},
+                {"garment_image_url": {"$regex": r"^/uploads/"}},
+                {"result_image_url": {"$regex": r"^/uploads/"}},
+            ]
+        }
+    )
+
+    async for product in db.products.find({"image_url": {"$exists": True}}):
+        image_url = str(product.get("image_url", ""))
+        if not is_local_upload_url(image_url):
+            continue
+
+        seed_product = next((item for item in SEED_PRODUCTS if item["id"] == product["id"]), None)
+        if seed_product is None:
+            continue
+
+        await db.products.update_one(
+            {"_id": product["_id"]},
+            {"$set": {"image_url": await _resolve_seed_product_image_url(seed_product)}},
+        )
 
 
 async def seed_admin_user() -> None:
@@ -126,6 +168,7 @@ async def seed_admin_user() -> None:
 async def lifespan(app: FastAPI):
     ensure_upload_dirs()
     await connect_to_mongo()
+    await cleanup_legacy_image_records()
     await seed_admin_user()
     await seed_products()
     yield
@@ -143,7 +186,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=settings.cors_allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

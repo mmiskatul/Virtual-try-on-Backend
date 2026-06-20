@@ -47,6 +47,11 @@ JWT_EXPIRE_MINUTES=1440
 JWT_ACCESS_COOKIE_NAME=admin_access_token
 JWT_ACCESS_COOKIE_SECURE=false
 JWT_ACCESS_COOKIE_SAMESITE=lax
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://ai-closet-viewer.vercel.app
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+CLOUDINARY_FOLDER=ai-fit-studio
 ```
 
 5. Create a MongoDB Atlas cluster and set `MONGODB_URI` to your Atlas connection string.
@@ -89,7 +94,7 @@ The admin dashboard user is seeded automatically from `ADMIN_USERNAME` and `ADMI
 
 - `POST /api/uploads/user-photo`
 
-Accepts `jpg`, `jpeg`, `png`, and `webp` files up to 10MB. Files are saved to `uploads/user_photos` and returned as local public URLs.
+Accepts `jpg`, `jpeg`, `png`, and `webp` files up to 10MB. In production, configure Cloudinary so uploads are stored remotely and returned as public HTTPS URLs. Without Cloudinary, local development falls back to `uploads/user_photos`.
 
 ### Try-On
 
@@ -107,11 +112,11 @@ Example request:
 }
 ```
 
-Generated results are saved to `uploads/results`, and history is stored in the `tryon_results` MongoDB collection.
+Generated results are stored in Cloudinary when configured. Local development falls back to `uploads/results`. History is stored in the `tryon_results` MongoDB collection.
 
 ## Notes
 
 - Keep `.env` private. Never expose `OPENAI_API_KEY` to the frontend.
-- CORS is configured to accept requests from any frontend origin during MVP development.
+- Configure `CORS_ALLOWED_ORIGINS` with a comma-separated list of frontend origins that should be allowed to call the API with credentials.
 - Product image URLs should be publicly reachable or otherwise accessible to the backend.
 - The OpenAI implementation uses the Responses API with the `image_generation` tool and sends both the user image and garment image as image inputs.

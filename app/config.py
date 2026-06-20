@@ -27,9 +27,29 @@ class Settings(BaseSettings):
     auth_cookie_name: str = Field(default="admin_access_token", alias="JWT_ACCESS_COOKIE_NAME")
     auth_cookie_secure: bool = Field(default=False, alias="JWT_ACCESS_COOKIE_SECURE")
     auth_cookie_samesite: str = Field(default="lax", alias="JWT_ACCESS_COOKIE_SAMESITE")
+    cors_allowed_origins: str = Field(
+        default="http://localhost:3000,http://localhost:3001,https://ai-closet-viewer.vercel.app",
+        alias="CORS_ALLOWED_ORIGINS",
+    )
+    cloudinary_cloud_name: str = Field(default="", alias="CLOUDINARY_CLOUD_NAME")
+    cloudinary_api_key: str = Field(default="", alias="CLOUDINARY_API_KEY")
+    cloudinary_api_secret: str = Field(default="", alias="CLOUDINARY_API_SECRET")
+    cloudinary_folder: str = Field(default="ai-fit-studio", alias="CLOUDINARY_FOLDER")
     max_upload_size_bytes: int = 10 * 1024 * 1024
 
     model_config = SettingsConfigDict(env_file=ROOT_DIR / ".env", extra="ignore")
+
+    @property
+    def cors_allowed_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
+
+    @property
+    def cloudinary_configured(self) -> bool:
+        return bool(
+            self.cloudinary_cloud_name
+            and self.cloudinary_api_key
+            and self.cloudinary_api_secret
+        )
 
 
 @lru_cache
