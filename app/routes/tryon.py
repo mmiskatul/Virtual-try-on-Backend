@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models.product import ErrorResponse
 from app.models.tryon import TryOnGenerateRequest, TryOnResultResponse
 from app.services.openai_service import generate_virtual_tryon
+from app.utils.auth import require_admin
 
 router = APIRouter(prefix="/api/tryon", tags=["try-on"])
 
@@ -83,3 +84,21 @@ async def get_tryon_history(
     if not document:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Try-on result not found.")
     return _serialize_tryon(document)
+
+
+@router.delete(
+    "/history/{history_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"model": ErrorResponse}},
+)
+async def delete_tryon_history(
+    history_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: str = Depends(require_admin),
+) -> None:
+    if not ObjectId.is_valid(history_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Try-on result not found.")
+
+    result = await db.tryon_results.delete_one({"_id": ObjectId(history_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Try-on result not found.")
