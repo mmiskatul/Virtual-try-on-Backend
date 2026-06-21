@@ -18,3 +18,7 @@ uploads/results/*
 !uploads/products/p8.jpg
 !uploads/results/.gitkeep
 .vercel
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
