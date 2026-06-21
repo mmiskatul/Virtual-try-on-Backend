@@ -45,11 +45,31 @@ class ProductResponse(ProductCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminDashboardProduct(ProductResponse):
+    try_on_count: int = 0
+    last_try_on_at: datetime | None = None
+
+
+class AdminRecentTryOn(BaseModel):
+    id: str
+    product_id: str
+    product_name: str
+    user_image_url: str
+    garment_image_url: str
+    result_image_url: str
+    created_at: datetime
+
+
 class AdminDashboardSummary(BaseModel):
     total_products: int
     active_products: int
+    inactive_products: int
     total_tryons: int
+    top_product_name: str | None = None
+    top_product_try_on_count: int = 0
     recent_products: list[ProductResponse]
+    products: list[AdminDashboardProduct]
+    recent_tryons: list[AdminRecentTryOn]
 
 
 class ErrorResponse(BaseModel):
