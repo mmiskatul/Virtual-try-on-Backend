@@ -33,8 +33,8 @@ async def admin_login(
         key=settings.auth_cookie_name,
         value=access_token,
         httponly=True,
-        secure=settings.auth_cookie_secure,
-        samesite=settings.auth_cookie_samesite,
+        secure=settings.effective_auth_cookie_secure,
+        samesite=settings.effective_auth_cookie_samesite,
         max_age=settings.jwt_expire_minutes * 60,
         path="/",
     )

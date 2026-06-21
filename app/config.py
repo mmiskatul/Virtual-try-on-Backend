@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+import re
 
 from dotenv import load_dotenv
 from pydantic import Field
@@ -31,6 +32,10 @@ class Settings(BaseSettings):
         default="http://localhost:3000,http://localhost:3001,https://ai-closet-viewer.vercel.app",
         alias="CORS_ALLOWED_ORIGINS",
     )
+    cors_allowed_origin_regex: str = Field(
+        default=r"^https:\/\/([a-z0-9-]+\.)*vercel\.app$",
+        alias="CORS_ALLOWED_ORIGIN_REGEX",
+    )
     cloudinary_cloud_name: str = Field(default="", alias="CLOUDINARY_CLOUD_NAME")
     cloudinary_api_key: str = Field(default="", alias="CLOUDINARY_API_KEY")
     cloudinary_api_secret: str = Field(default="", alias="CLOUDINARY_API_SECRET")
@@ -42,6 +47,27 @@ class Settings(BaseSettings):
     @property
     def cors_allowed_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
+
+    @property
+    def cors_allowed_origin_regex_compiled(self) -> str | None:
+        pattern = self.cors_allowed_origin_regex.strip()
+        if not pattern:
+            return None
+        re.compile(pattern)
+        return pattern
+
+    @property
+    def effective_auth_cookie_secure(self) -> bool:
+        if self.auth_cookie_samesite.strip().lower() == "none":
+            return True
+        return self.auth_cookie_secure
+
+    @property
+    def effective_auth_cookie_samesite(self) -> str:
+        value = self.auth_cookie_samesite.strip().lower()
+        if value not in {"lax", "strict", "none"}:
+            return "lax"
+        return value
 
     @property
     def cloudinary_configured(self) -> bool:
