@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database import get_db
-from app.models.product import ErrorResponse, ProductResponse
+from app.models.product import AdminDashboardSummary, ErrorResponse, ProductResponse
 from app.utils.auth import require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -10,6 +10,31 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 def _serialize_product(document: dict) -> ProductResponse:
     return ProductResponse(**{k: v for k, v in document.items() if k != "_id"})
+
+
+@router.get(
+    "/dashboard",
+    response_model=AdminDashboardSummary,
+)
+async def get_admin_dashboard(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(require_admin),
+) -> AdminDashboardSummary:
+    total_products = await db.products.count_documents({})
+    active_products = await db.products.count_documents({"is_active": True})
+    total_tryons = await db.tryon_results.count_documents({})
+
+    recent_products = []
+    cursor = db.products.find().sort("_id", -1).limit(4)
+    async for document in cursor:
+        recent_products.append(_serialize_product(document))
+
+    return AdminDashboardSummary(
+        total_products=total_products,
+        active_products=active_products,
+        total_tryons=total_tryons,
+        recent_products=recent_products,
+    )
 
 
 @router.get(

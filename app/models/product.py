@@ -45,5 +45,12 @@ class ProductResponse(ProductCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminDashboardSummary(BaseModel):
+    total_products: int
+    active_products: int
+    total_tryons: int
+    recent_products: list[ProductResponse]
+
+
 class ErrorResponse(BaseModel):
     detail: str
