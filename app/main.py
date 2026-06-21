@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import ROOT_DIR, ensure_upload_dirs, get_settings
 from app.database import close_mongo_connection, connect_to_mongo, get_database
-from app.routes import auth, products, tryon, uploads
+from app.routes import admin, auth, products, tryon, uploads
 from app.services.file_service import build_public_path, is_local_upload_url, upload_local_image_to_cloudinary
 from app.utils.passwords import hash_password
 
@@ -195,6 +195,7 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=ROOT_DIR / "uploads"), name="uploads")
 
 app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(products.router)
 app.include_router(uploads.router)
 app.include_router(tryon.router)
