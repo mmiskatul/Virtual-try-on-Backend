@@ -1,6 +1,6 @@
 # AI Virtual Try-On Backend
 
-FastAPI backend for an AI virtual try-on MVP. Users upload a full-body image, select a product, and the API sends the user image plus garment image to OpenAI to generate a realistic try-on preview.
+FastAPI backend for an AI virtual try-on MVP. Users upload a full-body image, select a product, and the API sends the user image plus garment image to Fal AI to generate a realistic try-on preview.
 
 ## Stack
 
@@ -8,7 +8,7 @@ FastAPI backend for an AI virtual try-on MVP. Users upload a full-body image, se
 - FastAPI
 - Pydantic
 - MongoDB with Motor async driver
-- OpenAI API
+- Fal AI API
 - python-dotenv
 
 ## Setup
@@ -35,10 +35,10 @@ cp .env.example .env
 4. Fill in `.env`:
 
 ```env
-OPENAI_API_KEY=your_openai_key
+FAL_KEY=your_fal_api_key
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority&appName=VirtualTryOn
 DATABASE_NAME=virtual_tryon_db
-OPENAI_MODEL=gpt-5.5
+FAL_MODEL=fal-ai/flux-2-lora-gallery/virtual-tryon
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
 JWT_SECRET_KEY=generate-a-long-random-secret-with-openssl-rand-hex-32
@@ -114,9 +114,11 @@ Example request:
 
 Generated results are stored in Cloudinary when configured. Local development falls back to `uploads/results`. History is stored in the `tryon_results` MongoDB collection.
 
+Each try-on result now also stores `image_details`, including the Fal provider name, model ID, source output URL, content type, file size, optional width/height, and Fal's returned `seed` when available.
+
 ## Notes
 
-- Keep `.env` private. Never expose `OPENAI_API_KEY` to the frontend.
+- Keep `.env` private. Never expose `FAL_KEY` to the frontend.
 - Configure `CORS_ALLOWED_ORIGINS` with a comma-separated list of frontend origins that should be allowed to call the API with credentials.
 - Product image URLs should be publicly reachable or otherwise accessible to the backend.
-- The OpenAI implementation uses the Responses API with the `image_generation` tool and sends both the user image and garment image as image inputs.
+- The Fal implementation uses the Python `fal_client.subscribe(...)` flow with the `fal-ai/flux-2-lora-gallery/virtual-tryon` style input shape: `image_urls` plus `prompt`.

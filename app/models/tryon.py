@@ -9,6 +9,19 @@ class TryOnGenerateRequest(BaseModel):
     prompt_optional: str | None = Field(default=None, max_length=1000)
 
 
+class TryOnImageDetails(BaseModel):
+    provider: str
+    model: str
+    request_id: str | None = None
+    source_result_url: str | None = None
+    content_type: str | None = None
+    file_name: str | None = None
+    file_size: int | None = None
+    width: int | None = None
+    height: int | None = None
+    seed: int | None = None
+
+
 class TryOnResultResponse(BaseModel):
     id: str
     user_image_url: str
@@ -17,6 +30,7 @@ class TryOnResultResponse(BaseModel):
     garment_image_url: str
     result_image_url: str
     prompt: str
+    image_details: TryOnImageDetails | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

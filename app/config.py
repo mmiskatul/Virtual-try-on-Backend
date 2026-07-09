@@ -16,10 +16,10 @@ load_dotenv(ROOT_DIR / ".env")
 
 
 class Settings(BaseSettings):
-    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+    fal_key: str = Field(default="", alias="FAL_KEY")
     mongodb_uri: str = Field(default="", alias="MONGODB_URI")
     database_name: str = Field(default="virtual_tryon_db", alias="DATABASE_NAME")
-    openai_model: str = Field(default="gpt-5.5", alias="OPENAI_MODEL")
+    fal_model: str = Field(default="fal-ai/flux-2-lora-gallery/virtual-tryon", alias="FAL_MODEL")
     admin_username: str = Field(default="admin", alias="ADMIN_USERNAME")
     admin_password: str = Field(default="", alias="ADMIN_PASSWORD")
     jwt_secret_key: str = Field(default="", alias="JWT_SECRET_KEY")

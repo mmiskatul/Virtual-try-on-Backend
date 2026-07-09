@@ -6,8 +6,8 @@ motor==3.7.1
 pymongo==4.13.2
 python-dotenv==1.1.1
 python-multipart==0.0.20
-openai==1.93.0
 httpx==0.28.1
 aiofiles==24.1.0
+fal-client==1.0.0
 python-jose[cryptography]==3.3.0
 cloudinary==1.44.1

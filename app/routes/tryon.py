@@ -7,7 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.database import get_db
 from app.models.product import ErrorResponse
 from app.models.tryon import TryOnGenerateRequest, TryOnResultResponse
-from app.services.openai_service import generate_virtual_tryon
+from app.services.fal_service import generate_virtual_tryon
 from app.utils.auth import require_admin
 
 router = APIRouter(prefix="/api/tryon", tags=["try-on"])
@@ -22,6 +22,7 @@ def _serialize_tryon(document: dict) -> TryOnResultResponse:
         garment_image_url=document["garment_image_url"],
         result_image_url=document["result_image_url"],
         prompt=document["prompt"],
+        image_details=document.get("image_details"),
         created_at=document["created_at"],
     )
 
@@ -39,9 +40,13 @@ async def generate_tryon(
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
 
-    result_image_url, final_prompt = await generate_virtual_tryon(
+    result_image_url, final_prompt, image_details = await generate_virtual_tryon(
         user_image_url=payload.user_image_url,
         garment_image_url=product["image_url"],
+        product_name=product["name"],
+        product_category=product["category"],
+        product_gender=product["gender"],
+        product_description=product.get("description"),
         prompt_optional=payload.prompt_optional,
     )
 
@@ -52,6 +57,7 @@ async def generate_tryon(
         "garment_image_url": product["image_url"],
         "result_image_url": result_image_url,
         "prompt": final_prompt,
+        "image_details": image_details,
         "created_at": datetime.now(timezone.utc),
     }
     insert_result = await db.tryon_results.insert_one(document)
