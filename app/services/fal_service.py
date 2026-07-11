@@ -11,10 +11,10 @@ from app.config import get_settings
 from app.services.file_service import guess_media_type, public_url_to_local_path, save_result_image
 
 DEFAULT_TRYON_PROMPT = (
-    "You are given two input images:\n"
-    "1. The first image (image_urls[0]) is the user's photo (the person).\n"
-    "2. The second image (image_urls[1]) is the garment/clothing photo (the item to try on).\n\n"
-    "Instruction: Perform a virtual try-on by placing the garment from the second image onto the person in the first image."
+    "You are an expert virtual dressing assistant. Your task is to perform a high-fidelity, realistic virtual try-on by combining two images:\n"
+    "- First Image (image_urls[0]): A photograph of a person (the user).\n"
+    "- Second Image (image_urls[1]): A clean photograph of a garment (the clothing item).\n\n"
+    "Instruction: Take the garment from the second image and dress the person from the first image in it, creating a single, perfectly realistic photograph."
 )
 
 settings = get_settings()
@@ -127,11 +127,13 @@ async def generate_virtual_tryon(
 
     prompt_parts = [
         DEFAULT_TRYON_PROMPT,
-        f"The garment to be placed is a {product_name} (Category: {product_category}, Target Audience: {product_gender}).",
-        "Keep the person's identity, face, pose, body proportions, hands, and background from the first image completely unchanged.",
-        "Modify only the clothing: remove the person's original upper/lower body clothing (as appropriate for the category) and replace it with the new garment from the second image.",
-        "Drape the new clothing naturally onto the person's body, matching the body posture, folds, shadows, and lighting.",
-        "Preserve the exact textures, patterns, colors, and design details of the garment from the second image.",
+        f"The garment to be placed is: {product_name} (Category: {product_category}, Target Audience: {product_gender}).",
+        "Requirements for a perfect generation:",
+        "1. PERSON PRESERVATION: Maintain the person's exact face, hair, eyes, skin tone, body shape, posture, hands, and original background from the first image. Do not alter their identity or introduce any structural deformities or extra limbs.",
+        "2. GARMENT ALIGNMENT & CATEGORY: Fit the garment from the second image onto the person's body. Correctly replace the person's existing clothing (e.g. swap the upper-body clothing for a shirt/t-shirt/jacket, or lower-body clothing for pants/skirts). The neckline, collar style, and sleeve length of the garment must be preserved.",
+        "3. REALISTIC FIT & FOLDS: Drape the clothing naturally over the person's body shape. Generate realistic folds, creases, seams, shadows, and highlights that match the posture and lighting of the first image.",
+        "4. DETAIL PRESERVATION: Keep the colors, prints, patterns, logos, textures, buttons, zippers, and stitching of the garment from the second image completely intact without warping, blurring, or stretching.",
+        "5. SEAMLESS BLENDING: Ensure the edges of the clothing blend naturally with the person's skin (neck, wrists, waist) and the background without any graphical artifacts or blurry outlines.",
     ]
     if product_description:
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
