@@ -11,7 +11,10 @@ from app.config import get_settings
 from app.services.file_service import guess_media_type, public_url_to_local_path, save_result_image
 
 DEFAULT_TRYON_PROMPT = (
-    "Create a realistic virtual try-on where this person (first image) is wearing this garment (second image)."
+    "You are given two input images:\n"
+    "1. The first image (image_urls[0]) is the user's photo (the person).\n"
+    "2. The second image (image_urls[1]) is the garment/clothing photo (the item to try on).\n\n"
+    "Instruction: Perform a virtual try-on by placing the garment from the second image onto the person in the first image."
 )
 
 settings = get_settings()
@@ -124,10 +127,11 @@ async def generate_virtual_tryon(
 
     prompt_parts = [
         DEFAULT_TRYON_PROMPT,
-        f"The garment is a {product_name} (Category: {product_category}, Style audience: {product_gender}).",
-        "Maintain the person's identity, facial features, pose, body shape, and background from the first image exactly.",
-        "Drape the garment naturally on the person's body, ensuring folds, shadows, and fit look realistic.",
-        "Preserve the textures, patterns, colors, and specific details of the garment from the second image.",
+        f"The garment to be placed is a {product_name} (Category: {product_category}, Target Audience: {product_gender}).",
+        "Keep the person's identity, face, pose, body proportions, hands, and background from the first image completely unchanged.",
+        "Modify only the clothing: remove the person's original upper/lower body clothing (as appropriate for the category) and replace it with the new garment from the second image.",
+        "Drape the new clothing naturally onto the person's body, matching the body posture, folds, shadows, and lighting.",
+        "Preserve the exact textures, patterns, colors, and design details of the garment from the second image.",
     ]
     if product_description:
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
