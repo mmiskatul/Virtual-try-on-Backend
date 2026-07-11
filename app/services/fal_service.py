@@ -118,6 +118,9 @@ async def generate_virtual_tryon(
     fit_type: str | None = None,
     coverage: str | None = None,
     selected_size: str | None = None,
+    user_body_size: str | None = None,
+    product_size_details: str | None = None,
+    user_size_details: str | None = None,
     prompt_optional: str | None = None,
 ) -> tuple[str, str, dict]:
     if not settings.fal_key:
@@ -166,11 +169,58 @@ async def generate_virtual_tryon(
             "XXL": "double extra large — oversized silhouette with maximum drape",
         }
         size_description = size_map.get(selected_size.upper(), selected_size)
-        prompt_parts.append(
-            f"SIZE INSTRUCTION: The user has selected size {selected_size.upper()} ({size_description}). "
-            "Adjust the garment's drape, volume, and silhouette to match this size on the person's body. "
-            "Ensure fabric tension, folds, and overall fit visually match the expected silhouette for this size."
-        )
+        
+        if user_body_size:
+            body_desc = size_map.get(user_body_size.upper(), user_body_size)
+            size_instruction = (
+                f"SIZE INSTRUCTION: The user's normal body size is {user_body_size.upper()} ({body_desc}), "
+                f"but they have chosen to try on the garment in size {selected_size.upper()} ({size_description}). "
+            )
+            
+            sizes_order = ["XS", "S", "M", "L", "XL", "XXL"]
+            try:
+                user_idx = sizes_order.index(user_body_size.upper())
+                garment_idx = sizes_order.index(selected_size.upper())
+                diff = garment_idx - user_idx
+                
+                if diff > 0:
+                    size_instruction += (
+                        f"Since the chosen garment size is {diff} size(s) larger than the user's standard body size, "
+                        "carefully drape the garment with an oversized, looser, and more relaxed volume. "
+                        "Show the garment fitting longer on the body and sleeves, with loose fabric folds and lower tension."
+                    )
+                elif diff < 0:
+                    size_instruction += (
+                        f"Since the chosen garment size is {abs(diff)} size(s) smaller than the user's standard body size, "
+                        "carefully drape the garment with a tight, snug, and very fitted look. "
+                        "Show the garment fitting shorter, with stretched fabric tension and minimal loose folds."
+                    )
+                else:
+                    size_instruction += (
+                        "Since the chosen garment size matches the user's standard body size, "
+                        "drape the garment with a normal, standard, and perfectly tailored fit."
+                    )
+            except ValueError:
+                size_instruction += (
+                    "Adjust the garment's drape, volume, and silhouette to match this size on the person's body. "
+                    "Ensure fabric tension, folds, and overall fit visually match the expected silhouette for this size."
+                )
+        else:
+            size_instruction = (
+                f"SIZE INSTRUCTION: The user has selected size {selected_size.upper()} ({size_description}). "
+                "Adjust the garment's drape, volume, and silhouette to match this size on the person's body. "
+                "Ensure fabric tension, folds, and overall fit visually match the expected silhouette for this size."
+            )
+            
+        if product_size_details:
+            size_instruction += f" Garment sizing specifications: {product_size_details.strip()}."
+        if user_size_details:
+            size_instruction += (
+                f" The user's body size/measurements details: {user_size_details.strip()}. "
+                "Carefully adjust the fit and length based on these details. For example, if the selected garment size is relatively "
+                "larger than the user's size/measurements, or if they are shorter/taller, show the garment fitting longer, looser, or oversized accordingly."
+            )
+        prompt_parts.append(size_instruction)
     if prompt_optional:
         prompt_parts.append(f"Additional user instructions: {prompt_optional.strip()}.")
     prompt = " ".join(prompt_parts)

@@ -36,6 +36,7 @@ class ProductBase(BaseModel):
     cloth_type: str | None = Field(default=None, max_length=100)
     coverage: Coverage | None = None
     available_sizes: list[str] = Field(default_factory=list)
+    size_details: str | None = Field(default=None, max_length=1000)
     fit_type: str | None = Field(default=None, max_length=80)
     color: str | None = Field(default=None, max_length=80)
     occasion: str | None = Field(default=None, max_length=100)
@@ -45,7 +46,7 @@ class ProductBase(BaseModel):
 
 
 class ProductCreate(ProductBase):
-    id: str = Field(..., min_length=2, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")
+    id: str | None = Field(default=None, max_length=80)
 
 
 class ProductUpdate(BaseModel):
@@ -59,6 +60,7 @@ class ProductUpdate(BaseModel):
     cloth_type: str | None = Field(default=None, max_length=100)
     coverage: Coverage | None = None
     available_sizes: list[str] | None = None
+    size_details: str | None = Field(default=None, max_length=1000)
     fit_type: str | None = Field(default=None, max_length=80)
     color: str | None = Field(default=None, max_length=80)
     occasion: str | None = Field(default=None, max_length=100)

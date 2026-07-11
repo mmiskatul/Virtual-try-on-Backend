@@ -51,6 +51,9 @@ async def generate_tryon(
         fit_type=product.get("fit_type"),
         coverage=product.get("coverage"),
         selected_size=payload.selected_size,
+        user_body_size=payload.user_body_size,
+        product_size_details=product.get("size_details"),
+        user_size_details=payload.user_size_details,
         prompt_optional=payload.prompt_optional,
     )
 

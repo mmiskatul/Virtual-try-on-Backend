@@ -22,6 +22,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p1.jpg",
         "price": 89.0,
         "description": "A breathable linen oxford shirt for polished casual styling.",
+        "available_sizes": ["S", "M", "L", "XL"],
+        "size_details": "S: Chest 38\", Length 27\"\nM: Chest 40\", Length 28\"\nL: Chest 42\", Length 29\"\nXL: Chest 44\", Length 30\"",
         "is_active": True,
     },
     {
@@ -32,6 +34,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p2.jpg",
         "price": 39.0,
         "description": "A minimal everyday black t-shirt with a clean crew neckline.",
+        "available_sizes": ["XS", "S", "M", "L", "XL"],
+        "size_details": "XS: Chest 36\", Length 26\"\nS: Chest 38\", Length 27\"\nM: Chest 40\", Length 28\"\nL: Chest 42\", Length 29\"\nXL: Chest 44\", Length 30\"",
         "is_active": True,
     },
     {
@@ -42,6 +46,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p3.jpg",
         "price": 129.0,
         "description": "Tailored camel trousers with a structured modern fit.",
+        "available_sizes": ["S", "M", "L", "XL"],
+        "size_details": "S: Waist 30\", Inseam 30\"\nM: Waist 32\", Inseam 31\"\nL: Waist 34\", Inseam 32\"\nXL: Waist 36\", Inseam 33\"",
         "is_active": True,
     },
     {
@@ -52,6 +58,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p8.jpg",
         "price": 59.0,
         "description": "A refined navy pique polo for smart casual looks.",
+        "available_sizes": ["S", "M", "L", "XL", "XXL"],
+        "size_details": "S: Chest 38\", Length 27.5\"\nM: Chest 40\", Length 28.5\"\nL: Chest 42\", Length 29.5\"\nXL: Chest 44\", Length 30.5\"\nXXL: Chest 46\", Length 31.5\"",
         "is_active": True,
     },
     {
@@ -62,6 +70,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p4.jpg",
         "price": 79.0,
         "description": "A floral kurti with soft drape and comfortable everyday styling.",
+        "available_sizes": ["XS", "S", "M", "L", "XL"],
+        "size_details": "XS: Bust 34\", Length 36\"\nS: Bust 36\", Length 37\"\nM: Bust 38\", Length 38\"\nL: Bust 40\", Length 39\"\nXL: Bust 42\", Length 40\"",
         "is_active": True,
     },
     {
@@ -72,6 +82,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p5.jpg",
         "price": 219.0,
         "description": "An elegant midnight chiffon dress for evening occasions.",
+        "available_sizes": ["XS", "S", "M", "L"],
+        "size_details": "XS: Bust 32\", Waist 26\", Length 48\"\nS: Bust 34\", Waist 28\", Length 49\"\nM: Bust 36\", Waist 30\", Length 50\"\nL: Bust 38\", Waist 32\", Length 51\"",
         "is_active": True,
     },
     {
@@ -82,6 +94,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p6.jpg",
         "price": 99.0,
         "description": "A smooth ivory silk shirt with a relaxed premium silhouette.",
+        "available_sizes": ["XS", "S", "M", "L", "XL"],
+        "size_details": "XS: Bust 34\", Length 26\"\nS: Bust 36\", Length 26.5\"\nM: Bust 38\", Length 27\"\nL: Bust 40\", Length 27.5\"\nXL: Bust 42\", Length 28\"",
         "is_active": True,
     },
     {
@@ -92,6 +106,8 @@ SEED_PRODUCTS = [
         "image_path": "uploads/products/p7.jpg",
         "price": 109.0,
         "description": "Neutral tailored pants designed for versatile outfit pairing.",
+        "available_sizes": ["S", "M", "L", "XL"],
+        "size_details": "S: Waist 30\", Inseam 30\"\nM: Waist 32\", Inseam 31\"\nL: Waist 34\", Inseam 32\"\nXL: Waist 36\", Inseam 33\"",
         "is_active": True,
     },
 ]

@@ -6,7 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class TryOnGenerateRequest(BaseModel):
     user_image_url: str = Field(..., min_length=1)
     product_id: str = Field(..., min_length=1)
-    selected_size: str | None = Field(default=None, max_length=10)
+    selected_size: str = Field(..., min_length=1, max_length=10)
+    user_body_size: str = Field(..., min_length=1, max_length=10)
+    user_size_details: str | None = Field(default=None, max_length=500)
     prompt_optional: str | None = Field(default=None, max_length=1000)
 
 

@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo.errors import DuplicateKeyError
@@ -46,6 +47,9 @@ async def create_product(
     _: None = Depends(require_admin),
 ) -> ProductResponse:
     document = product.model_dump(mode="json")
+    doc_id = ObjectId()
+    document["_id"] = doc_id
+    document["id"] = str(doc_id)
     try:
         await db.products.insert_one(document)
     except DuplicateKeyError as exc:
@@ -53,7 +57,7 @@ async def create_product(
             status_code=status.HTTP_409_CONFLICT,
             detail="Product id already exists.",
         ) from exc
-    return ProductResponse(**document)
+    return _serialize_product(document)
 
 
 @router.put(
