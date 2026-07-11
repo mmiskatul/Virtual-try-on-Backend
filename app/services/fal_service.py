@@ -11,7 +11,7 @@ from app.config import get_settings
 from app.services.file_service import guess_media_type, public_url_to_local_path, save_result_image
 
 DEFAULT_TRYON_PROMPT = (
-    "Create a realistic virtual try-on using the provided person photo and garment photo."
+    "Create a realistic virtual try-on where this person (first image) is wearing this garment (second image)."
 )
 
 settings = get_settings()
@@ -124,11 +124,10 @@ async def generate_virtual_tryon(
 
     prompt_parts = [
         DEFAULT_TRYON_PROMPT,
-        f"The garment is {product_name}.",
-        f"Category: {product_category}.",
-        f"Target style audience: {product_gender}.",
-        "Keep the person identity, pose, body proportions, and background consistent.",
-        "Make the clothing fit naturally and preserve important garment details.",
+        f"The garment is a {product_name} (Category: {product_category}, Style audience: {product_gender}).",
+        "Maintain the person's identity, facial features, pose, body shape, and background from the first image exactly.",
+        "Drape the garment naturally on the person's body, ensuring folds, shadows, and fit look realistic.",
+        "Preserve the textures, patterns, colors, and specific details of the garment from the second image.",
     ]
     if product_description:
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
