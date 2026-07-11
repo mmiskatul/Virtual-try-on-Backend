@@ -114,6 +114,10 @@ async def generate_virtual_tryon(
     product_category: str,
     product_gender: str,
     product_description: str | None = None,
+    cloth_type: str | None = None,
+    fit_type: str | None = None,
+    coverage: str | None = None,
+    selected_size: str | None = None,
     prompt_optional: str | None = None,
 ) -> tuple[str, str, dict]:
     if not settings.fal_key:
@@ -125,9 +129,24 @@ async def generate_virtual_tryon(
     user_bytes, user_media_type = await _read_image_bytes(user_image_url)
     garment_bytes, garment_media_type = await _read_image_bytes(garment_image_url)
 
+    # Build garment metadata line
+    garment_meta_parts = [
+        f"The garment to be placed is: {product_name}",
+        f"Category: {product_category}",
+        f"Target Audience: {product_gender}",
+    ]
+    if cloth_type:
+        garment_meta_parts.append(f"Fabric: {cloth_type}")
+    if fit_type:
+        garment_meta_parts.append(f"Fit: {fit_type}")
+    if coverage:
+        coverage_label = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body", "accessory": "Accessory"}.get(coverage, coverage)
+        garment_meta_parts.append(f"Coverage: {coverage_label}")
+    garment_meta = ", ".join(garment_meta_parts) + "."
+
     prompt_parts = [
         DEFAULT_TRYON_PROMPT,
-        f"The garment to be placed is: {product_name} (Category: {product_category}, Target Audience: {product_gender}).",
+        garment_meta,
         "Requirements for a perfect generation:",
         "1. PERSON PRESERVATION: Maintain the person's exact face, hair, eyes, skin tone, body shape, posture, hands, and original background from the first image. Do not alter their identity or introduce any structural deformities or extra limbs.",
         "2. GARMENT ALIGNMENT & CATEGORY: Fit the garment from the second image onto the person's body. Correctly replace the person's existing clothing (e.g. swap the upper-body clothing for a shirt/t-shirt/jacket, or lower-body clothing for pants/skirts). The neckline, collar style, and sleeve length of the garment must be preserved.",
@@ -137,6 +156,21 @@ async def generate_virtual_tryon(
     ]
     if product_description:
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
+    if selected_size:
+        size_map = {
+            "XS": "extra small — very fitted, minimal fabric volume",
+            "S": "small — close to the body with a tailored feel",
+            "M": "medium — standard fit with natural drape",
+            "L": "large — relaxed fit with slightly more fabric volume",
+            "XL": "extra large — loose with generous drape",
+            "XXL": "double extra large — oversized silhouette with maximum drape",
+        }
+        size_description = size_map.get(selected_size.upper(), selected_size)
+        prompt_parts.append(
+            f"SIZE INSTRUCTION: The user has selected size {selected_size.upper()} ({size_description}). "
+            "Adjust the garment's drape, volume, and silhouette to match this size on the person's body. "
+            "Ensure fabric tension, folds, and overall fit visually match the expected silhouette for this size."
+        )
     if prompt_optional:
         prompt_parts.append(f"Additional user instructions: {prompt_optional.strip()}.")
     prompt = " ".join(prompt_parts)

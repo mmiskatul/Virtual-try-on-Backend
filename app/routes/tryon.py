@@ -47,6 +47,10 @@ async def generate_tryon(
         product_category=product["category"],
         product_gender=product["gender"],
         product_description=product.get("description"),
+        cloth_type=product.get("cloth_type"),
+        fit_type=product.get("fit_type"),
+        coverage=product.get("coverage"),
+        selected_size=payload.selected_size,
         prompt_optional=payload.prompt_optional,
     )
 

@@ -18,6 +18,13 @@ class Category(str, Enum):
     dress = "dress"
 
 
+class Coverage(str, Enum):
+    upper = "upper"
+    lower = "lower"
+    full = "full"
+    accessory = "accessory"
+
+
 class ProductBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=120)
     gender: Gender
@@ -25,7 +32,15 @@ class ProductBase(BaseModel):
     image_url: HttpUrl | str
     price: float = Field(..., ge=0)
     description: str = Field(..., min_length=5, max_length=500)
-    materials: str | None = Field(default=None, max_length=200)
+    materials: str | None = Field(default=None, max_length=300)
+    cloth_type: str | None = Field(default=None, max_length=100)
+    coverage: Coverage | None = None
+    available_sizes: list[str] = Field(default_factory=list)
+    fit_type: str | None = Field(default=None, max_length=80)
+    color: str | None = Field(default=None, max_length=80)
+    occasion: str | None = Field(default=None, max_length=100)
+    care_instructions: str | None = Field(default=None, max_length=300)
+    brand: str | None = Field(default=None, max_length=80)
     is_active: bool = True
 
 
@@ -40,7 +55,15 @@ class ProductUpdate(BaseModel):
     image_url: HttpUrl | str | None = None
     price: float | None = Field(default=None, ge=0)
     description: str | None = Field(default=None, min_length=5, max_length=500)
-    materials: str | None = Field(default=None, max_length=200)
+    materials: str | None = Field(default=None, max_length=300)
+    cloth_type: str | None = Field(default=None, max_length=100)
+    coverage: Coverage | None = None
+    available_sizes: list[str] | None = None
+    fit_type: str | None = Field(default=None, max_length=80)
+    color: str | None = Field(default=None, max_length=80)
+    occasion: str | None = Field(default=None, max_length=100)
+    care_instructions: str | None = Field(default=None, max_length=300)
+    brand: str | None = Field(default=None, max_length=80)
     is_active: bool | None = None
 
 
