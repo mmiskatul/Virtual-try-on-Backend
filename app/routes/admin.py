@@ -1,6 +1,7 @@
 from datetime import datetime, time, timedelta, timezone
+from math import ceil
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.database import get_db
@@ -16,6 +17,7 @@ from app.models.product import (
     AdminDashboardProduct,
     AdminDashboardSummary,
     ErrorResponse,
+    PaginatedProducts,
     ProductResponse,
 )
 from app.utils.auth import require_admin
@@ -144,6 +146,38 @@ async def list_all_products(
     async for document in cursor:
         products.append(_serialize_product(document))
     return products
+
+
+@router.get("/products/paged", response_model=PaginatedProducts)
+async def list_all_products_paged(
+    q: str = Query(default="", max_length=120),
+    status_filter: str = Query(default="all", alias="status", pattern="^(all|live|inactive)$"),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=24, ge=1, le=100),
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(require_admin),
+) -> PaginatedProducts:
+    filters: dict = {}
+    if status_filter == "live":
+        filters["is_active"] = True
+    elif status_filter == "inactive":
+        filters["is_active"] = False
+    if q.strip():
+        filters["$or"] = [
+            {"name": {"$regex": q.strip(), "$options": "i"}},
+            {"id": {"$regex": q.strip(), "$options": "i"}},
+            {"category": {"$regex": q.strip(), "$options": "i"}},
+        ]
+    total = await db.products.count_documents(filters)
+    cursor = db.products.find(filters).sort("name", 1).skip((page - 1) * page_size).limit(page_size)
+    items = [_serialize_product(document) async for document in cursor]
+    return PaginatedProducts(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=ceil(total / page_size) if total else 0,
+    )
 
 
 @router.get(

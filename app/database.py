@@ -15,8 +15,13 @@ async def connect_to_mongo() -> None:
     await client.admin.command("ping")
     db = get_database()
     await db.products.create_index("id", unique=True)
+    await db.products.create_index([("is_active", 1), ("name", 1)])
+    await db.products.create_index([("category", 1), ("name", 1)])
     await db.admin_users.create_index("username", unique=True)
     await db.categories.create_index("value", unique=True)
+    await db.tryon_results.create_index([("product_id", 1), ("created_at", -1)])
+    await db.tryon_results.create_index([("created_at", -1)])
+    await db.admin_audit_logs.create_index([("created_at", -1)])
 
 
 async def close_mongo_connection() -> None:

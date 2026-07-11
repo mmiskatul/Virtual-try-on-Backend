@@ -86,6 +86,14 @@ class ProductResponse(ProductCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaginatedProducts(BaseModel):
+    items: list[ProductResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
 class AdminDashboardProduct(ProductResponse):
     try_on_count: int = 0
     last_try_on_at: datetime | None = None
