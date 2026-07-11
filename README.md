@@ -38,7 +38,7 @@ cp .env.example .env
 FAL_KEY=your_fal_api_key
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority&appName=VirtualTryOn
 DATABASE_NAME=virtual_tryon_db
-FAL_MODEL=fal-ai/flux-2-lora-gallery/virtual-tryon
+FAL_MODEL=fal-ai/gemini-25-flash-image/edit
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
 JWT_SECRET_KEY=generate-a-long-random-secret-with-openssl-rand-hex-32
@@ -121,4 +121,4 @@ Each try-on result now also stores `image_details`, including the Fal provider n
 - Keep `.env` private. Never expose `FAL_KEY` to the frontend.
 - Configure `CORS_ALLOWED_ORIGINS` with a comma-separated list of frontend origins that should be allowed to call the API with credentials.
 - Product image URLs should be publicly reachable or otherwise accessible to the backend.
-- The Fal implementation uses the Python `fal_client.subscribe(...)` flow with the `fal-ai/flux-2-lora-gallery/virtual-tryon` style input shape: `image_urls` plus `prompt`.
+- The Fal implementation uses the Python `fal_client.subscribe(...)` flow with the `fal-ai/gemini-25-flash-image/edit` style input shape: `image_urls` plus `prompt`.

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     fal_key: str = Field(default="", alias="FAL_KEY")
     mongodb_uri: str = Field(default="", alias="MONGODB_URI")
     database_name: str = Field(default="virtual_tryon_db", alias="DATABASE_NAME")
-    fal_model: str = Field(default="fal-ai/flux-2-lora-gallery/virtual-tryon", alias="FAL_MODEL")
+    fal_model: str = Field(default="fal-ai/gemini-25-flash-image/edit", alias="FAL_MODEL")
     admin_username: str = Field(default="admin", alias="ADMIN_USERNAME")
     admin_password: str = Field(default="", alias="ADMIN_PASSWORD")
     jwt_secret_key: str = Field(default="", alias="JWT_SECRET_KEY")
