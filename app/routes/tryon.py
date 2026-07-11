@@ -73,6 +73,7 @@ async def generate_tryon(
         color=product.get("color"),
         occasion=product.get("occasion"),
         brand=product.get("brand"),
+        care_instructions=product.get("care_instructions"),
     )
 
     document = {

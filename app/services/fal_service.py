@@ -126,6 +126,7 @@ async def generate_virtual_tryon(
     color: str | None = None,
     occasion: str | None = None,
     brand: str | None = None,
+    care_instructions: str | None = None,
 ) -> tuple[str, str, dict]:
     if not settings.fal_key:
         raise HTTPException(
@@ -143,20 +144,22 @@ async def generate_virtual_tryon(
         f"Target Audience: {product_gender}",
     ]
     if cloth_type:
-        garment_meta_parts.append(f"Fabric: {cloth_type}")
+        garment_meta_parts.append(f"Fabric/Cloth Type: {cloth_type}")
     if materials:
-        garment_meta_parts.append(f"Composition: {materials}")
+        garment_meta_parts.append(f"Material Composition: {materials}")
     if color:
         garment_meta_parts.append(f"Color: {color}")
     if fit_type:
-        garment_meta_parts.append(f"Fit style: {fit_type}")
+        garment_meta_parts.append(f"Fit Style: {fit_type}")
     if brand:
-        garment_meta_parts.append(f"Brand: {brand}")
+        garment_meta_parts.append(f"Brand/Label: {brand}")
     if occasion:
-        garment_meta_parts.append(f"Recommended occasion: {occasion}")
+        garment_meta_parts.append(f"Recommended Occasion: {occasion}")
+    if care_instructions:
+        garment_meta_parts.append(f"Care Instructions: {care_instructions}")
     if coverage:
         coverage_label = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body", "accessory": "Accessory"}.get(coverage, coverage)
-        garment_meta_parts.append(f"Coverage: {coverage_label}")
+        garment_meta_parts.append(f"Body Coverage: {coverage_label}")
     garment_meta = ", ".join(garment_meta_parts) + "."
 
     prompt_parts = [
