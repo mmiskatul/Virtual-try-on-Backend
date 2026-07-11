@@ -34,6 +34,8 @@ class TryOnResultResponse(BaseModel):
     garment_image_url: str
     result_image_url: str
     prompt: str
+    selected_size: str | None = None
+    user_body_size: str | None = None
     image_details: TryOnImageDetails | None = None
     created_at: datetime
 

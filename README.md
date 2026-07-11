@@ -93,8 +93,13 @@ The admin dashboard user is seeded automatically from `ADMIN_USERNAME` and `ADMI
 ### Admin overview
 
 - `GET /api/admin/dashboard`
+- `GET /api/admin/analytics?days=30`
+- `GET /api/admin/settings`
+- `PUT /api/admin/settings`
 
 Requires an admin bearer token. Returns inventory totals, all-time and current-day try-on counts, a seven-day try-on series, the most-used product, recent products, per-product usage, and recent try-on activity for the dashboard overview.
+
+The analytics endpoint accepts a range from 7 to 90 days and returns real try-on volume, period comparison, category and product performance, inventory reach, and stored result metadata. Studio settings are persisted in MongoDB; rendering preferences are included in the guidance for future try-on generations.
 
 ### Uploads
 
@@ -107,6 +112,8 @@ Accepts `jpg`, `jpeg`, `png`, and `webp` files up to 10MB. In production, config
 - `POST /api/tryon/generate`
 - `GET /api/tryon/history`
 - `GET /api/tryon/history/{id}`
+
+Listing all history requires admin authentication. An individual generated result remains available by ID so the result page can open immediately after generation.
 
 Example request:
 

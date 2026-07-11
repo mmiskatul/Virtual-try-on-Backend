@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -29,6 +31,10 @@ async def admin_login(
         )
 
     access_token = create_admin_access_token(admin_user["username"])
+    await db.admin_users.update_one(
+        {"_id": admin_user["_id"]},
+        {"$set": {"last_login_at": datetime.now(timezone.utc)}},
+    )
     response.set_cookie(
         key=settings.auth_cookie_name,
         value=access_token,

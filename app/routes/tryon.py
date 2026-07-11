@@ -22,6 +22,8 @@ def _serialize_tryon(document: dict) -> TryOnResultResponse:
         garment_image_url=document["garment_image_url"],
         result_image_url=document["result_image_url"],
         prompt=document["prompt"],
+        selected_size=document.get("selected_size"),
+        user_body_size=document.get("user_body_size"),
         image_details=document.get("image_details"),
         created_at=document["created_at"],
     )
@@ -40,6 +42,18 @@ async def generate_tryon(
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
 
+    studio_settings = await db.admin_settings.find_one({"key": "studio"}) or {}
+    studio_guidance = []
+    if studio_settings.get("high_fidelity_rendering", True):
+        studio_guidance.append("Prioritize high-fidelity garment texture and stitching detail.")
+    if studio_settings.get("real_time_physics", True):
+        studio_guidance.append("Preserve realistic fabric drape, weight, folds, and body contact.")
+    if studio_settings.get("precision_calibration", False):
+        studio_guidance.append("Calibrate garment alignment carefully to the subject's pose and lighting.")
+    generation_guidance = " ".join(
+        [*studio_guidance, payload.prompt_optional or ""]
+    ).strip() or None
+
     result_image_url, final_prompt, image_details = await generate_virtual_tryon(
         user_image_url=payload.user_image_url,
         garment_image_url=product["image_url"],
@@ -54,7 +68,7 @@ async def generate_tryon(
         user_body_size=payload.user_body_size,
         product_size_details=product.get("size_details"),
         user_size_details=payload.user_size_details,
-        prompt_optional=payload.prompt_optional,
+        prompt_optional=generation_guidance,
         materials=product.get("materials"),
         color=product.get("color"),
         occasion=product.get("occasion"),
@@ -68,6 +82,8 @@ async def generate_tryon(
         "garment_image_url": product["image_url"],
         "result_image_url": result_image_url,
         "prompt": final_prompt,
+        "selected_size": payload.selected_size,
+        "user_body_size": payload.user_body_size,
         "image_details": image_details,
         "created_at": datetime.now(timezone.utc),
     }
@@ -77,7 +93,10 @@ async def generate_tryon(
 
 
 @router.get("/history", response_model=list[TryOnResultResponse])
-async def list_tryon_history(db: AsyncIOMotorDatabase = Depends(get_db)) -> list[TryOnResultResponse]:
+async def list_tryon_history(
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: str = Depends(require_admin),
+) -> list[TryOnResultResponse]:
     results = []
     cursor = db.tryon_results.find().sort("created_at", -1)
     async for document in cursor:
