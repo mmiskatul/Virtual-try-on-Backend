@@ -90,6 +90,12 @@ Products are seeded automatically on startup into the `products` collection.
 
 The admin dashboard user is seeded automatically from `ADMIN_USERNAME` and `ADMIN_PASSWORD` into the `admin_users` collection each time the backend starts.
 
+### Admin overview
+
+- `GET /api/admin/dashboard`
+
+Requires an admin bearer token. Returns inventory totals, all-time and current-day try-on counts, a seven-day try-on series, the most-used product, recent products, per-product usage, and recent try-on activity for the dashboard overview.
+
 ### Uploads
 
 - `POST /api/uploads/user-photo`

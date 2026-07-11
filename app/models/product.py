@@ -88,11 +88,18 @@ class AdminRecentTryOn(BaseModel):
     created_at: datetime
 
 
+class AdminDailyTryOnCount(BaseModel):
+    date: str
+    count: int
+
+
 class AdminDashboardSummary(BaseModel):
     total_products: int
     active_products: int
     inactive_products: int
     total_tryons: int
+    tryons_today: int
+    tryons_last_7_days: list[AdminDailyTryOnCount]
     top_product_name: str | None = None
     top_product_try_on_count: int = 0
     recent_products: list[ProductResponse]

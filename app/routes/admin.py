@@ -1,3 +1,5 @@
+from datetime import datetime, time, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -41,6 +43,19 @@ async def get_admin_dashboard(
     active_products = await db.products.count_documents({"is_active": True})
     inactive_products = max(0, total_products - active_products)
     total_tryons = await db.tryon_results.count_documents({})
+
+    today = datetime.now(timezone.utc).date()
+    seven_day_counts = []
+    for days_ago in range(6, -1, -1):
+        day = today - timedelta(days=days_ago)
+        day_start = datetime.combine(day, time.min, tzinfo=timezone.utc)
+        day_end = day_start + timedelta(days=1)
+        count = await db.tryon_results.count_documents(
+            {"created_at": {"$gte": day_start, "$lt": day_end}}
+        )
+        seven_day_counts.append({"date": day.isoformat(), "count": count})
+
+    tryons_today = seven_day_counts[-1]["count"]
 
     tryon_counts: dict[str, dict[str, object]] = {}
     cursor = db.tryon_results.aggregate(
@@ -96,6 +111,8 @@ async def get_admin_dashboard(
         active_products=active_products,
         inactive_products=inactive_products,
         total_tryons=total_tryons,
+        tryons_today=tryons_today,
+        tryons_last_7_days=seven_day_counts,
         top_product_name=top_product_name,
         top_product_try_on_count=top_product_try_on_count,
         recent_products=recent_products,
