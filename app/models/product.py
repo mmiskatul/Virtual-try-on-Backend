@@ -1,7 +1,9 @@
 from datetime import datetime
 from enum import Enum
+import re
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import field_validator
 
 
 class Gender(str, Enum):
@@ -10,12 +12,9 @@ class Gender(str, Enum):
     unisex = "unisex"
 
 
-class Category(str, Enum):
-    shirt = "shirt"
-    t_shirt = "t-shirt"
-    pant = "pant"
-    kurti = "kurti"
-    dress = "dress"
+def _normalize_category(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", value.strip().lower())
+    return re.sub(r"(^-|-$)", "", normalized)
 
 
 class Coverage(str, Enum):
@@ -28,7 +27,7 @@ class Coverage(str, Enum):
 class ProductBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=120)
     gender: Gender
-    category: Category
+    category: str = Field(..., min_length=1, max_length=80)
     image_url: HttpUrl | str
     price: float = Field(..., ge=0)
     description: str = Field(..., min_length=5, max_length=500)
@@ -44,6 +43,13 @@ class ProductBase(BaseModel):
     brand: str | None = Field(default=None, max_length=80)
     is_active: bool = True
 
+    @field_validator("category", mode="before")
+    @classmethod
+    def normalize_category(cls, value: object) -> object:
+        if isinstance(value, str):
+            return _normalize_category(value)
+        return value
+
 
 class ProductCreate(ProductBase):
     id: str | None = Field(default=None, max_length=80)
@@ -52,7 +58,7 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=120)
     gender: Gender | None = None
-    category: Category | None = None
+    category: str | None = Field(default=None, min_length=1, max_length=80)
     image_url: HttpUrl | str | None = None
     price: float | None = Field(default=None, ge=0)
     description: str | None = Field(default=None, min_length=5, max_length=500)
@@ -67,6 +73,13 @@ class ProductUpdate(BaseModel):
     care_instructions: str | None = Field(default=None, max_length=300)
     brand: str | None = Field(default=None, max_length=80)
     is_active: bool | None = None
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def normalize_category(cls, value: object) -> object:
+        if isinstance(value, str):
+            return _normalize_category(value)
+        return value
 
 
 class ProductResponse(ProductCreate):

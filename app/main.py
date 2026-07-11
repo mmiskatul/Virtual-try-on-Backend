@@ -7,9 +7,10 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import ROOT_DIR, ensure_upload_dirs, get_settings
 from app.database import close_mongo_connection, connect_to_mongo, get_database
-from app.routes import admin, auth, products, tryon, uploads
+from app.routes import admin, auth, categories, products, tryon, uploads
 from app.services.file_service import build_public_path, is_local_upload_url, upload_local_image_to_cloudinary
 from app.utils.passwords import hash_password
+from app.utils.categories import format_category_label, normalize_category_value
 
 settings = get_settings()
 
@@ -112,6 +113,15 @@ SEED_PRODUCTS = [
     },
 ]
 
+SEED_CATEGORIES = [
+    "shirt",
+    "t-shirt",
+    "pant",
+    "kurti",
+    "dress",
+    "panjabi",
+]
+
 
 async def _resolve_seed_product_image_url(product: dict[str, str]) -> str:
     image_path = ROOT_DIR / product["image_path"]
@@ -131,6 +141,38 @@ async def seed_products() -> None:
         payload = {k: v for k, v in product.items() if k != "image_path"}
         payload["image_url"] = image_url
         await db.products.update_one({"id": payload["id"]}, {"$set": payload}, upsert=True)
+
+
+async def seed_categories() -> None:
+    db = get_database()
+    category_values = {
+        normalize_category_value(str(category))
+        for category in SEED_CATEGORIES
+        if normalize_category_value(str(category))
+    }
+    category_values.update(
+        normalize_category_value(str(product["category"]))
+        for product in SEED_PRODUCTS
+        if normalize_category_value(str(product["category"]))
+    )
+
+    async for product in db.products.find({}, {"category": 1}):
+        product_category = normalize_category_value(str(product.get("category", "")))
+        if product_category:
+            category_values.add(product_category)
+
+    for value in sorted(category_values):
+        await db.categories.update_one(
+            {"value": value},
+            {
+                "$set": {
+                    "value": value,
+                    "label": format_category_label(value),
+                    "is_active": True,
+                }
+            },
+            upsert=True,
+        )
 
 
 async def cleanup_legacy_image_records() -> None:
@@ -186,6 +228,7 @@ async def lifespan(app: FastAPI):
     await connect_to_mongo()
     await cleanup_legacy_image_records()
     await seed_admin_user()
+    await seed_categories()
     await seed_products()
     yield
     await close_mongo_connection()
@@ -213,6 +256,7 @@ app.mount("/uploads", StaticFiles(directory=ROOT_DIR / "uploads"), name="uploads
 
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(categories.router)
 app.include_router(products.router)
 app.include_router(uploads.router)
 app.include_router(tryon.router)

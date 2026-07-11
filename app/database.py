@@ -16,6 +16,7 @@ async def connect_to_mongo() -> None:
     db = get_database()
     await db.products.create_index("id", unique=True)
     await db.admin_users.create_index("username", unique=True)
+    await db.categories.create_index("value", unique=True)
 
 
 async def close_mongo_connection() -> None:
