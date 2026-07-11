@@ -55,6 +55,10 @@ async def generate_tryon(
         product_size_details=product.get("size_details"),
         user_size_details=payload.user_size_details,
         prompt_optional=payload.prompt_optional,
+        materials=product.get("materials"),
+        color=product.get("color"),
+        occasion=product.get("occasion"),
+        brand=product.get("brand"),
     )
 
     document = {

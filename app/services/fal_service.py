@@ -122,6 +122,10 @@ async def generate_virtual_tryon(
     product_size_details: str | None = None,
     user_size_details: str | None = None,
     prompt_optional: str | None = None,
+    materials: str | None = None,
+    color: str | None = None,
+    occasion: str | None = None,
+    brand: str | None = None,
 ) -> tuple[str, str, dict]:
     if not settings.fal_key:
         raise HTTPException(
@@ -132,7 +136,7 @@ async def generate_virtual_tryon(
     user_bytes, user_media_type = await _read_image_bytes(user_image_url)
     garment_bytes, garment_media_type = await _read_image_bytes(garment_image_url)
 
-    # Build garment metadata line
+    # Build garment metadata line with all collection details
     garment_meta_parts = [
         f"The garment to be placed is: {product_name}",
         f"Category: {product_category}",
@@ -140,8 +144,16 @@ async def generate_virtual_tryon(
     ]
     if cloth_type:
         garment_meta_parts.append(f"Fabric: {cloth_type}")
+    if materials:
+        garment_meta_parts.append(f"Composition: {materials}")
+    if color:
+        garment_meta_parts.append(f"Color: {color}")
     if fit_type:
-        garment_meta_parts.append(f"Fit: {fit_type}")
+        garment_meta_parts.append(f"Fit style: {fit_type}")
+    if brand:
+        garment_meta_parts.append(f"Brand: {brand}")
+    if occasion:
+        garment_meta_parts.append(f"Recommended occasion: {occasion}")
     if coverage:
         coverage_label = {"upper": "Upper Body", "lower": "Lower Body", "full": "Full Body", "accessory": "Accessory"}.get(coverage, coverage)
         garment_meta_parts.append(f"Coverage: {coverage_label}")
@@ -151,11 +163,11 @@ async def generate_virtual_tryon(
         DEFAULT_TRYON_PROMPT,
         garment_meta,
         "Requirements for a perfect generation:",
-        "1. PERSON PRESERVATION: Maintain the person's exact face, hair, eyes, skin tone, body shape, posture, hands, and original background from the first image. Do not alter their identity or introduce any structural deformities or extra limbs.",
-        "2. GARMENT ALIGNMENT & CATEGORY: Fit the garment from the second image onto the person's body. Correctly replace the person's existing clothing (e.g. swap the upper-body clothing for a shirt/t-shirt/jacket, or lower-body clothing for pants/skirts). The neckline, collar style, and sleeve length of the garment must be preserved.",
-        "3. REALISTIC FIT & FOLDS: Drape the clothing naturally over the person's body shape. Generate realistic folds, creases, seams, shadows, and highlights that match the posture and lighting of the first image.",
+        "1. PERSON PRESERVATION: Maintain the person's exact face, hair, eyes, skin tone, body shape, posture, hands, and original background from the first image. Keep their natural features, depth, and skin details intact so they look like a real person in a real photograph.",
+        "2. GARMENT ALIGNMENT & CATEGORY: Fit the garment from the second image onto the person's body. Correctly replace the person's existing clothing. The neckline, collar style, and sleeve length of the garment must be preserved.",
+        "3. REALISTIC FIT, TEXTURE & FOLDS: Drape the clothing naturally over the person's body shape. Generate realistic folds, creases, seams, shadows, and highlights that match the posture, lighting, and material properties (e.g. how silk drapes vs cotton or linen) of the first image.",
         "4. DETAIL PRESERVATION: Keep the colors, prints, patterns, logos, textures, buttons, zippers, and stitching of the garment from the second image completely intact without warping, blurring, or stretching.",
-        "5. SEAMLESS BLENDING: Ensure the edges of the clothing blend naturally with the person's skin (neck, wrists, waist) and the background without any graphical artifacts or blurry outlines.",
+        "5. SEAMLESS BLENDING & BOUNDARIES: Ensure the edges of the clothing blend naturally with the person's skin (neck, wrists, waist) and the background without any graphical artifacts or blurry outlines.",
     ]
     if product_description:
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
