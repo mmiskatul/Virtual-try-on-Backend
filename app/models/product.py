@@ -25,6 +25,7 @@ class ProductBase(BaseModel):
     image_url: HttpUrl | str
     price: float = Field(..., ge=0)
     description: str = Field(..., min_length=5, max_length=500)
+    materials: str | None = Field(default=None, max_length=200)
     is_active: bool = True
 
 
@@ -39,6 +40,7 @@ class ProductUpdate(BaseModel):
     image_url: HttpUrl | str | None = None
     price: float | None = Field(default=None, ge=0)
     description: str | None = Field(default=None, min_length=5, max_length=500)
+    materials: str | None = Field(default=None, max_length=200)
     is_active: bool | None = None
 
 
