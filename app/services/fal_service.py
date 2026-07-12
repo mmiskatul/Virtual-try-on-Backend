@@ -11,10 +11,12 @@ from app.config import get_settings
 from app.services.file_service import guess_media_type, public_url_to_local_path, save_result_image
 
 DEFAULT_TRYON_PROMPT = (
-    "You are an expert virtual dressing assistant. Your task is to perform a high-fidelity, realistic virtual try-on by combining two images:\n"
+    "You are an advanced, expert virtual dressing assistant. Your task is to perform a high-fidelity, realistic virtual try-on by combining two images:\n"
     "- First Image (image_urls[0]): A photograph of a person (the user).\n"
     "- Second Image (image_urls[1]): A clean photograph of a garment (the clothing item).\n\n"
-    "Instruction: Take the garment from the second image and dress the person from the first image in it, creating a single, perfectly realistic photograph."
+    "Instruction: Take the garment from the second image and dress the person from the first image in it, creating a single, perfectly realistic photograph. "
+    "You must adjust the drape, silhouette, fabric folds, tension, shoulder seams, and overall length based on the sizing parameters (such as whether "
+    "the selected garment size is larger, smaller, or matching the person's body size) to accurately represent size-wise fit variations (oversized, fitted, or standard)."
 )
 
 settings = get_settings()
@@ -176,20 +178,20 @@ async def generate_virtual_tryon(
         prompt_parts.append(f"Garment details: {product_description.strip()}.")
     if selected_size:
         size_map = {
-            "XS": "extra small — very fitted, minimal fabric volume",
-            "S": "small — close to the body with a tailored feel",
-            "M": "medium — standard fit with natural drape",
-            "L": "large — relaxed fit with slightly more fabric volume",
-            "XL": "extra large — loose with generous drape",
-            "XXL": "double extra large — oversized silhouette with maximum drape",
+            "XS": "Extra Small (very fitted, tight-fitting drape, minimal fabric volume, close to body contours)",
+            "S": "Small (slim-fit, tailored close to the body, clean modern drape, minor fabric volume)",
+            "M": "Medium (standard fit, natural drape, balanced volume, perfect regular drape)",
+            "L": "Large (relaxed fit, slightly loose, subtle fabric volume, casual drape with extra fold lines)",
+            "XL": "Extra Large (loose silhouette, generous volume, soft cascading folds, baggy drape)",
+            "XXL": "Double Extra Large (oversized, maximum fabric drape, drop shoulders, relaxed silhouette, long hem/sleeves)",
         }
         size_description = size_map.get(selected_size.upper(), selected_size)
         
         if user_body_size:
             body_desc = size_map.get(user_body_size.upper(), user_body_size)
             size_instruction = (
-                f"SIZE INSTRUCTION: The user's normal body size is {user_body_size.upper()} ({body_desc}), "
-                f"but they have chosen to try on the garment in size {selected_size.upper()} ({size_description}). "
+                f"SIZE INSTRUCTION: The user's standard body size is {user_body_size.upper()} ({body_desc}), "
+                f"but they are trying on the garment in size {selected_size.upper()} ({size_description}). "
             )
             
             sizes_order = ["XS", "S", "M", "L", "XL", "XXL"]
@@ -200,25 +202,31 @@ async def generate_virtual_tryon(
                 
                 if diff > 0:
                     size_instruction += (
-                        f"Since the chosen garment size is {diff} size(s) larger than the user's standard body size, "
-                        "carefully drape the garment with an oversized, looser, and more relaxed volume. "
-                        "Show the garment fitting longer on the body and sleeves, with loose fabric folds and lower tension."
+                        f"Since the chosen garment size ({selected_size.upper()}) is {diff} size(s) LARGER than the user's standard body size ({user_body_size.upper()}), "
+                        "you MUST render the garment with a loose, relaxed, and oversized fit. "
+                        "Make the shoulder seams sit lower than the natural shoulder joints (drop shoulder effect), "
+                        "add extra fabric volume and folds around the chest and torso, show sleeves extending longer and stack them slightly at the wrists, "
+                        "and make the bottom hemline drape lower on the hips/thighs with visible sagging and low tension."
                     )
                 elif diff < 0:
                     size_instruction += (
-                        f"Since the chosen garment size is {abs(diff)} size(s) smaller than the user's standard body size, "
-                        "carefully drape the garment with a tight, snug, and very fitted look. "
-                        "Show the garment fitting shorter, with stretched fabric tension and minimal loose folds."
+                        f"Since the chosen garment size ({selected_size.upper()}) is {abs(diff)} size(s) SMALLER than the user's standard body size ({user_body_size.upper()}), "
+                        "you MUST render the garment with a tight, snug, and highly fitted silhouette. "
+                        "The fabric must pull tightly across the chest, shoulders, and waist, showing prominent horizontal stretch tension lines and creases. "
+                        "Make the shoulder seams sit high and close to the neck, show the sleeves fitting tight and ending higher on the forearm, "
+                        "and make the bottom hemline sit higher on the waist/torso showing a shorter, high-tension fit."
                     )
                 else:
                     size_instruction += (
                         "Since the chosen garment size matches the user's standard body size, "
-                        "drape the garment with a normal, standard, and perfectly tailored fit."
+                        "render the garment with a standard, clean, and perfectly tailored fit. "
+                        "Ensure the shoulder seams sit exactly at the shoulder joints, the fabric follows the body contours naturally with minimal tension, "
+                        "and the sleeve length and bottom hemline sit at standard, proportional positions."
                     )
             except ValueError:
                 size_instruction += (
-                    "Adjust the garment's drape, volume, and silhouette to match this size on the person's body. "
-                    "Ensure fabric tension, folds, and overall fit visually match the expected silhouette for this size."
+                    "Please adjust the drape, fabric volume, and fit silhouette to match this size. "
+                    "Ensure fabric tension, folds, and overall fit visually depict the expected silhouette for this size."
                 )
         else:
             size_instruction = (
